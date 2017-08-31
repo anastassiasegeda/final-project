@@ -11,10 +11,9 @@ concat = require('gulp-concat'),
 uglify = require('gulp-uglifyjs');
 
 
-
 //compile/minify custom css code
 gulp.task('csscustom', function () {
-    gulp.src('sass/*.sass')
+    gulp.src('sass/main.sass')
     .pipe(sass({
     includePaths: require('node-bourbon').includePaths
     }).on('error', sass.logError))
@@ -33,7 +32,9 @@ gulp.task('csslibs', function(){
        // 'app/libs/font-awesome/css/font-awesome.min.css',
         'public/libs/bootstrap/css/bootstrap.min.css',
         'public/libs/bootstrap/css/bootstrap-tagsinput.css',
-        'public/libs/bootstrap/css/bootstrap-datepicker.min.css'
+        'public/libs/bootstrap/css/bootstrap-datepicker.min.css',
+        'public/libs/font-awesome/css/font-awesome.min.css',
+        'public/libs/hamburgers/hamburgers.min.css'
         ])
     .pipe(concat('libs.min.css'))
     .pipe(minifycss())
@@ -81,6 +82,6 @@ gulp.task('watch',['browser-sync','csscustom', 'scripts', 'csslibs'], function()
     gulp.watch('public/js/**/*.js', reload);
 });
 
-gulp.task('default', ['watch'], function() {
+gulp.task('default', ['watch', 'csslibs'], function() {
 
 });

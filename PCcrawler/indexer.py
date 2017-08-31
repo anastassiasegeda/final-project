@@ -25,7 +25,6 @@ summary = {}
 fulltext = []
 
 def main():
-    # code for testing offline
     max_files = 64000;
     if len(sys.argv) == 1:
         print ('usage: ./indexer.py file | -d directory [maxfiles]')
@@ -60,10 +59,8 @@ def main():
                 index_file(filename)
             else:
                 break
-				
 			
-def index_file(filename):
-            
+def index_file(filename):          
         try:
             input_file = open(filename, 'r')
         except (IOError) as ex:
@@ -75,7 +72,6 @@ def index_file(filename):
             make_index(url, page_contents)   
             input_file.close()
 
-    
 def clean_html(html):
     """
     Based on clean_html() from NLTK package.
@@ -208,12 +204,13 @@ def make_index(url, page_contents):
        #Instead of crawling the website it crawls messages (containing outbreaks)
        #From an email account
        #Another option is to use Selenium driver, see selenium example.py file
+
     if(re.findall('promedmail.org', url)):
         #Source: https://gist.github.com/robulouski/7441883
         M = imaplib.IMAP4_SSL('imap.gmail.com')
-        rv, data = M.login('EMAIL', 'PASSWORD')
+        rv, data = M.login('testnnuhapp@gmail.com', '45455452Promed')
 
-        print(rv, data)
+        #print(rv, data)
 
         rv, mailboxes = M.list()
         if rv == 'OK':
@@ -250,17 +247,14 @@ def make_index(url, page_contents):
                         body = part.get_payload(decode=True) 
                         body = body.decode()
                         body = body.split('See Also')[0]
+
+                        #print(body)
                         urlp = 'promed'+str(hdr)
                         make_index(urlp, body)
-
             M.close()
         else:
             print("ERROR: Unable to open mailbox ", rv)
         M.logout()
-
-
-
-
 
     ### main steps ###
     # 1. add the url to the doclist (DJS Nov 2015) 
@@ -291,13 +285,19 @@ def make_index(url, page_contents):
 
     if (isinstance(page_contents, bytes)): # convert bytes to string if necessary
         page_contents = page_contents.decode('utf-8', 'ignore') # was decode('utf-8')
-        
+
     words = clean_html(page_contents)
-    splitText = words.split("\n")
-    fulltext.append(" ".join(splitText));
 
     sentences = []
     dates = []
+
+    #datepromed = re.findall(r"Date:.*", words, flags=0)
+
+    words = re.sub(r"Note:(.*?)\.gov \.", r"", words)#cdc javascript warning
+    #words = re.sub(r"Date:.*\n.*\n.*", r"", words)#promed extra info
+
+    splitText = words.split("\n")
+    fulltext.append(" ".join(splitText))
 
     for phrase in splitText:
         if(phrase.endswith('.') and not(re.findall('promed', url))):
@@ -315,7 +315,7 @@ def make_index(url, page_contents):
                 sent = phrase.split('.')
                 for p in sent:
                     numbers = sum(c.isdigit() for c in p)
-                    if(numbers > 5):#>5 because it can be 20 March 2017 (6 digits), 20/03/2017 (8 digits) etc)
+                    if(numbers > 4):#>5 because it can be 2 March 2017 (5 digits), 20/03/2017 (8 digits) etc)
                         p = re.sub(r",", r"", p)#remove commas
                         if (not p in dates):
                             dates.append(p)
@@ -328,30 +328,55 @@ def make_index(url, page_contents):
         if(len(d) < 2):
             dates.remove(d)
 
-
-    #Find titleof the outbreak, specific for each website
+    #Find title of the outbreak, specific for each website
     title = 'Title not found'       
     if(re.findall('who', domain_url)):
         title = re.findall('<h1.*?>(.+?)</h1>', page_contents)
        # print(title)
     elif(re.findall('promed', domain_url)):
-        if(re.findall('>', url)):
+        title = url
+        if(re.findall('> ', title)):
             title = url.split('> ')[1]
+            
+        if(re.findall('>', title)):
+            title = url.split('>')[1]
+
+        if(re.findall('[EXTERNAL]', title)):
+            title = title.split('[EXTERNAL]')[0]
         else:
             title = url.split('promed')[1]
         #print(title)
     elif(re.findall('wwwnc', domain_url)):
         title = re.findall('<h1.*?>(.+?)</h1>', page_contents)
-       # print(title)
+        p = re.sub(r",", r"", p)#remove commas
 
-    if(re.findall('promed', url)):
-        k = " ".join(splitText)
-        summary[docid] = ({'title':title, 'sentences':k, 'dates': dates})
-    else:
-        summary[docid] = ({'title':title, 'sentences':sentences, 'dates': dates})
+
+    k = " ".join(splitText)
+
+    ##Clean up the summary (Mostly promed posts)
+    k = re.sub(r"Date\:(.*?)", r"", k)
+    k = re.sub(r"A ProMED-mail post ProMED-mail is a program of the International Society for Infectious Diseases", r"", k)
+    k = re.sub(r"A HealthMap\/ProMED-mail map can be accessed at:", r"", k)
+    k = re.sub(r"\[", r"", k)
+    k = re.sub(r"\]", r"", k)
+    k = re.sub(r"^(.*)\*", r"", k)
+    k = re.sub(r"([^.]*\-\-\-)", r"<br><br><strong>\1</strong><br>", k)
+    k = re.sub(r"(Communicated by:.*)", r"<br><br>\1", k)
+    k = re.sub(r"(Communicated by: ProMED-mail)", r"\1\.", k)
+
+    k = re.sub(r"abstract available at Abstract", r"", k)
+    k = re.sub(r"\-\-", r"", k)
+    #sentences containinc Maps,maps, map, Map because the map is not visible in the app
+    k = re.sub(r"[^.]*Maps[^.]*\.", r"", k)
+    k = re.sub(r"[^.]*maps[^.]*\.", r"", k)
+    k = re.sub(r"[^.]*Map[^.]*\.", r"", k)
+    k = re.sub(r"[^.]*map[^.]*\.", r"", k)
+
+    summary[docid] = ({'title':title, 'sentences':k, 'dates': dates})
+
 
     ###################################################
-    #############stemming##############################
+    #############stemming before recording how many times each work occurs in the text
     words = re.sub(r"(\w)'s", r"", words)# remove apostrophes
     words = re.sub(r",", r"", words)#remove commas
     words = re.sub(r"\.", r"", words)#remove dots
@@ -365,7 +390,8 @@ def make_index(url, page_contents):
     ###################################################
 
     # split the words string into a list of words
-    wordlist = words.split()
+
+    wordlist = words.split();
 
     # store doclength
     doclength[docid] = len(wordlist)
@@ -385,7 +411,8 @@ def make_index(url, page_contents):
         if (not wordid in postings):
             postings[wordid] = {}
         if (not docid in postings[wordid]):
-            postings[wordid][docid] = wordlist.count(word)    
+            postings[wordid][docid] = wordlist.count(word)  
+
     write_index_files(1)
     return
 # Standard boilerplate to call the main() function
@@ -393,5 +420,5 @@ if __name__ == '__main__':
     main()
 
     #python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100
-    #python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/en/ 100
+    #python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/chn/en/ 100
     #python PCcrawler.py promedmail.org/post http://www.promedmail.org

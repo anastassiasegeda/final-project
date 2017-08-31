@@ -1,0 +1,17 @@
+{
+{
+"domain":"wwwnc.cdc.gov/travel/notices",
+"url":"https://wwwnc.cdc.gov/travel/notices"
+},
+{
+"domain":"www.who.int",
+"url":"http://www.who.int/csr/don/archive/country/en/"
+},
+{
+"domain":"promedmail.org/post",
+"url":"http://www.promedmail.org"
+}
+}
+
+ 
+
