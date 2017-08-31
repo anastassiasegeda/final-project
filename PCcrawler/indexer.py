@@ -208,7 +208,7 @@ def make_index(url, page_contents):
     if(re.findall('promedmail.org', url)):
         #Source: https://gist.github.com/robulouski/7441883
         M = imaplib.IMAP4_SSL('imap.gmail.com')
-        rv, data = M.login('testnnuhapp@gmail.com', '45455452Promed')
+        rv, data = M.login('TEST', 'PW')
 
         #print(rv, data)
 
