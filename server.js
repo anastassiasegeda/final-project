@@ -19,41 +19,40 @@ var server = app.listen(app.get('port'), function() {
   console.log('Listening on port:  ' + port);
 });
 
-
-//node-crone - task scheduler, runs every day at 11:59:00 PM UTC+00:00
+//node-crone - task scheduler, runs every day at 11:59:59 PM UTC+00:00
 //Scheduler. Resource: https://github.com/kelektiv/node-cron
 var CronJob = require('cron').CronJob;
 var runCrawler = new CronJob({
-  cronTime: '05 25 11 * * 1-7',//'59 59 23 * * 1-7',
+  cronTime: '55 30 15 * * 1-7',//'59 59 23 * * 1-7',
   onTick: function() {
      	var child_process = require('child_process');
 		console.log("Execute python");
 
 		//do the same for every website or specify them in array/json string and for-loop
-		/*child_process.execSync('python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100',{cwd: './PCcrawler/'}, function (err){
-   	 		if (err){
-   	 			console.log(err);
-    			console.log("child processes failed with error code: " + err.code);
-   	 		}
-		});*/
-
-	/* child_process.execSync('python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/en/ 100',{cwd: './PCcrawler/'}, function (err){
-   	 		if (err){
-   	 			console.log(err);
-    			console.log("child processes failed with error code: " + err.code);
-   	 		}
-		});*/
-		child_process.execSync('python PCcrawler.py promedmail.org/post http://www.promedmail.org 200',{cwd: './PCcrawler/'}, function (err){
+		child_process.execSync('python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100',{cwd: './PCcrawler/'}, function (err){
    	 		if (err){
    	 			console.log(err);
     			console.log("child processes failed with error code: " + err.code);
    	 		}
 		});
+
+	 	/*child_process.execSync('python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/en/ 100',{cwd: './PCcrawler/'}, function (err){
+   	 		if (err){
+   	 			console.log(err);
+    			console.log("child processes failed with error code: " + err.code);
+   	 		}
+		});*/
+		/*child_process.execSync('python PCcrawler.py promedmail.org/post http://www.promedmail.org 200',{cwd: './PCcrawler/'}, function (err){
+   	 		if (err){
+   	 			console.log(err);
+    			console.log("child processes failed with error code: " + err.code);
+   	 		}
+		});*/
 		var countries = ["Afghanistan","Albania","Algeria", "American Samoa","Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia",
 				"Aruba", "Australia","Austria","Azerbaijan","Bahamas", "Bahrain","Bangladesh", "Barbados", "Belarus","Belgium",
  				"Belize", "Bermuda", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil","Brunei", "Bulgaria", "Burkina Faso","Burundi", "Cambodia", "Cameroon", "Canada",
  	  			"Cape Verde", "Cayman Islands","Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", 
- 		 		"Democratic Republic of Congo", "Republic of Congo", "Costa Rica", "Cote dIvoire", "Croatia", "Cuba", "Curacao",
+ 		 		"Democratic Republic of the Congo", "Republic of Congo", "Costa Rica", "Cote dIvoire", "Croatia", "Cuba", "Curacao",
  		  		"Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica","Dominican Republic", "Ecuador", "Egypt", "El Salvador", 
  		  		"Equatorial Guinea", "Eritrea","Estonia", "Ethiopia","Faeroe Islands", "Fiji", "Finland","France","French Polynesia", "Gabon", "Gambia",
  				"Georgia", "Germany", "Ghana", "Greece", "Greenland","Grenada", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", 
@@ -62,12 +61,12 @@ var runCrawler = new CronJob({
   				"Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Macedonia", "Madagascar", 
   				"Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico","Mayotte",
   				"Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", 
-  				"Netherlands", "New Caledonia", "New Zealand", "Nicaragua","Niger", "Nigeria", "North Korea", "Northern Mariana Island", "Norway", "Oman", "Pakistan",
+  				"Netherlands", "New Caledonia", "New Zealand", "Nicaragua","Niger", "Nigeria", "North Korea", "Northern Cyprys", "Northern Mariana Island", "Norway", "Oman", "Pakistan",
   				"Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Puerto Rico", "Qatar",
   				"Romania", "Russia", "Russian Federation", "Rwanda", "St Kitts and Nevis", "St Lucia", "St Martin", "Saint Vincent and the Grenadines", "Samoa",
-  				"San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", 
+  				"San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Republic of Serbia", "Seychelles", "Sierra Leone", "Singapore", 
   				"Slovakia", "Slovenia", "Solomon Islands", "Somalia", "Somaliland", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", 
-  				"Sudan", "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", 
+  				"Sudan", "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "United Republic of Tanzania", "Thailand", 
   				"East Timor", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine",
   				"United Arab Emirates", "United Kingdom", "United States of America", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Western Sahara", "Yemen", "Zambia", "Zimbabwe"];
 
@@ -140,17 +139,16 @@ runCrawler.start();
 
 //Return data of recent outbreaks for one day, one week, two weeks, one month
 app.post('/worldmap',function(req, res){
-	var mapobj1 = JSON.parse(fs.readFileSync('mapdata/mapdata1.txt', 'utf8'));
-	var mapobj7 = JSON.parse(fs.readFileSync('mapdata/mapdata7.txt', 'utf8'));
-	var mapobj14 = JSON.parse(fs.readFileSync('mapdata/mapdata14.txt', 'utf8'));
-	var mapobj31 = JSON.parse(fs.readFileSync('mapdata/mapdata31.txt', 'utf8'));
+	var data = req.body;
+	data = Object.keys(data);
 
-	var mapval1 = JSON.parse(fs.readFileSync('mapdata/mapvalues1.txt', 'utf8'));
-	var mapval7 = JSON.parse(fs.readFileSync('mapdata/mapvalues7.txt', 'utf8'));
-	var mapval14 = JSON.parse(fs.readFileSync('mapdata/mapvalues14.txt', 'utf8'));
-	var mapval31 = JSON.parse(fs.readFileSync('mapdata/mapvalues31.txt', 'utf8'));
+	var filenameData = 'mapdata/mapdata'+data[0]+'.txt';
+	var filanameValues = 'mapdata/mapvalues'+data[0]+'.txt';
 
-	res.send([JSON.stringify(mapobj1), JSON.stringify(mapobj7), JSON.stringify(mapobj14), JSON.stringify(mapobj31), JSON.stringify(mapval1), JSON.stringify(mapval7), JSON.stringify(mapval14), JSON.stringify(mapval31)]);
+	var mapobj = JSON.parse(fs.readFileSync(filenameData, 'utf8'));
+	var mapval = JSON.parse(fs.readFileSync(filanameValues, 'utf8'));
+
+	res.send([JSON.stringify(mapobj), JSON.stringify(mapval)]);
 });
 
 //Accept post request with search entries from client, process the data and 
@@ -296,6 +294,31 @@ var findMatchingKeywords = function(keywords, id){
 	return keywordsMatched;
 };
 
+//some countries might be mentioned differently (in the postings)
+//for example: United States of America/United States or United Republic of Tanzania/Tanzania
+//so there's a list of 'alternative' names which have to be checked for some countries
+//to make sure some of the postings are not left out
+var findAltNames = function(country){
+
+	var altnames = {'United States of America':['United States of America', 'United States'],
+					'United Republic of Tanzania':['United Republic of Tanzania','Tanzania'],
+					'United Arab Emirates':['UAE', 'United Arab Emirates'],
+					'Unted Kingdom':['United Kingdom', 'England', 'Scotland', 'Northern Ireland', 'Wales'],
+						'Republic of Serbia':['Serbia', 'Republic of Serbia'],
+					'Democratic Republic of the Congo':['Democratic Republic of the Congo', 'DR Congo']
+					};
+
+	var altcountries = Object.keys(altnames);
+	if(altcountries.indexOf(country) > -1){
+		alternatives = altnames[country];
+	}else{
+		alternatives = [country];
+	}
+
+	return alternatives;
+};
+
+
 var findOutbreaks = function(entries, keywords){
 	var docids1 = JSON.parse(fs.readFileSync('PCcrawler/data/docids1.txt', 'utf8'));
 	var postings1 = JSON.parse(fs.readFileSync('PCcrawler/data/postings1.txt', 'utf8'));						
@@ -306,9 +329,14 @@ var findOutbreaks = function(entries, keywords){
 for (j = 0; j < entries.length; j++){
 		var c = entries[j].country;
 		outbreaksFound[c] = {};
+
+		var altCountryNames = findAltNames(c);
+
+		for(var a = 0; a<altCountryNames.length; a++){
 		//some countries are composite (United Kingdom, United Arab Emirates)
 		//need to split because they are stored as separate words in the vocabulary
-		var csplit = c.split(' ');
+		var csplit = altCountryNames[a].split(' ');
+
 		var isPresent = 1//true - found in the vocab
 		//extra check if country is in dictionary
 		//could save some time if its not: do not need to check country + date n times
@@ -465,6 +493,9 @@ for (j = 0; j < entries.length; j++){
 					}//end for each possible date
 				}//end if any possible date found
 		}//end if country is present in the vocab
+
+
+	}//end for alt names
 }//end for each country
 
 	//console.log(outbreaksFound);

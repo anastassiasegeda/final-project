@@ -46,6 +46,7 @@ gulp.task('csslibs', function(){
 gulp.task('scripts', function(){
     return gulp.src([
         'public/libs/jquery/jquery.min.js',
+        'public/libs/tether/tether.min.js',
         'public/libs/bootstrap/js/bootstrap.min.js',
         'public/libs/bootstrap/js/bootstrap-tagsinput.min.js',
         'public/libs/bootstrap/js/bootstrap-datepicker.min.js',

@@ -11,6 +11,10 @@ body, #spa-search
 p, .row
 	margin: 0
 
+//tooltip colour
+.tooltip .tooltip-inner
+	background-color: #f00
+
 //cursor for icons
 #addbtn, .fa-pencil, .fa-times, .fa-map-marker, .fa-chevron-up, .fa
 	cursor: pointer
@@ -25,7 +29,7 @@ p, .row
 .spa-description-summary
 	text-align: justify
 
-.spa-description-url
+.spa-description-url, .spa-description-summary
 	word-wrap: break-word
 
 .label 
@@ -62,8 +66,9 @@ p, .row
 .dropdown
 	padding-top: 15px
 
-#dropdownRanges
+#dropdownRanges, #dropdownSortValues
 	position: absolute
+	overflow-y: scroll
 
 .datepick
 	height: 34px
@@ -93,8 +98,18 @@ p, .row
 		cursor: pointer
 
 #recent-outbreaks-list
-	margin-top: 30px
+	margin-top: 10px
 	margin-bottom: 50px
+
+#sortOutbreaks
+	margin-top: 20px
+	padding: 15px
+
+#dropdownRange
+	margin-top: 15px
+
+#sortText
+	padding-top: 7px
 
 /*results list dropdown animation*/
 .spa-results-dropbtn
@@ -135,7 +150,7 @@ ul.dropdown-menu
 	z-index: 99999
 	height: 100px
 	overflow: hidden
-	overflow-y:scroll
+	overflow-y: scroll
 	li:hover
 		background-color: $accent-colour
 		color: #fff
@@ -191,6 +206,12 @@ ul.typeahead.dropdown-menu
 	width: 100%
 	height: 100%
 	background-color: rgba(0,0,0,0.5)
+
+.loaderContainerTransparent
+	position: absolute
+	z-index: 10
+	width: 100%
+	height: 100%
 
 @keyframes spin 
 	0% { transform: rotate(0deg) }

@@ -89,7 +89,7 @@ def clean_html(html):
     # tags since comments can contain '>' characters.
     cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
     # Next we can remove the remaining tags:
-    cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
+    #cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
     # Deal with whitespace
     cleaned = re.sub(r"&nbsp;", " ", cleaned)
     cleaned = re.sub(r"\r", " ", cleaned)
@@ -184,7 +184,6 @@ def read_index_files():
     
     return
 
-
 def make_index(url, page_contents):
     # declare refs to global variables
     global docids		# contains URLs + docids
@@ -208,7 +207,7 @@ def make_index(url, page_contents):
     if(re.findall('promedmail.org', url)):
         #Source: https://gist.github.com/robulouski/7441883
         M = imaplib.IMAP4_SSL('imap.gmail.com')
-        rv, data = M.login('TEST', 'PW')
+        rv, data = M.login('testnnuhapp@gmail.com', '45455452Promed')
 
         #print(rv, data)
 
@@ -286,7 +285,8 @@ def make_index(url, page_contents):
     if (isinstance(page_contents, bytes)): # convert bytes to string if necessary
         page_contents = page_contents.decode('utf-8', 'ignore') # was decode('utf-8')
 
-    words = clean_html(page_contents)
+    #words = clean_html(page_contents)
+    words = page_contents
 
     sentences = []
     dates = []
@@ -350,30 +350,42 @@ def make_index(url, page_contents):
         title = re.findall('<h1.*?>(.+?)</h1>', page_contents)
         p = re.sub(r",", r"", p)#remove commas
 
+    k = words
 
-    k = " ".join(splitText)
+
+    #Promed has links in <http...> - replace to (http...) so it's not considered as html tags 
+    k = re.sub(r"\<", r"(", k)
+    k = re.sub(r"\>", r")", k)
+    k = re.sub(r"\[edited\]", r"(edited)", k)
+    k = re.sub(r"\s\s", r" ", k)
 
     ##Clean up the summary (Mostly promed posts)
-    k = re.sub(r"Date\:(.*?)", r"", k)
+    k = re.sub(r"in Spanish", r"", k)
+    k = re.sub(r"Summary:", r"", k)
+    k = re.sub(r"(\sDate:)", r".\1", k)
+    k = re.sub(r"(\sSource:)", r".\1", k)
+    k = re.sub(r"(\sFrom:)", r".\1", k)
+
     k = re.sub(r"A ProMED-mail post ProMED-mail is a program of the International Society for Infectious Diseases", r"", k)
-    k = re.sub(r"A HealthMap\/ProMED-mail map can be accessed at:", r"", k)
+    k = re.sub(r"^(.*)\*{10}", r"", k)
+
+    k = re.sub(r"(communicated by:)", r"Communicated by:", k)
+    k = re.sub(r"(Communicated by: ProMED-mail)", r"\1.", k)
+    k = re.sub(r"(Communicated by:)", r"<br><br>\1", k)
+
+    k = re.sub(r"\.\.",".", k)
+    k = re.sub(r"\-\-\-", r"", k)
+    k = re.sub(r"\-\-", r"", k)
+    k = re.sub(r"\*\*", r"", k)
+
+    #[1] to [99] formatting, because [ ] will be deleted
+    k = re.sub(r"(\[\d\])", r"<br><br><strong>{\1}</strong>", k)
+    k = re.sub(r"(\[\d\d\])", r"<br><br><strong>{\1}</strong>", k)
+
     k = re.sub(r"\[", r"", k)
     k = re.sub(r"\]", r"", k)
-    k = re.sub(r"^(.*)\*", r"", k)
-    k = re.sub(r"([^.]*\-\-\-)", r"<br><br><strong>\1</strong><br>", k)
-    k = re.sub(r"(Communicated by:.*)", r"<br><br>\1", k)
-    k = re.sub(r"(Communicated by: ProMED-mail)", r"\1\.", k)
-
-    k = re.sub(r"abstract available at Abstract", r"", k)
-    k = re.sub(r"\-\-", r"", k)
-    #sentences containinc Maps,maps, map, Map because the map is not visible in the app
-    k = re.sub(r"[^.]*Maps[^.]*\.", r"", k)
-    k = re.sub(r"[^.]*maps[^.]*\.", r"", k)
-    k = re.sub(r"[^.]*Map[^.]*\.", r"", k)
-    k = re.sub(r"[^.]*map[^.]*\.", r"", k)
 
     summary[docid] = ({'title':title, 'sentences':k, 'dates': dates})
-
 
     ###################################################
     #############stemming before recording how many times each work occurs in the text
@@ -419,6 +431,6 @@ def make_index(url, page_contents):
 if __name__ == '__main__':
     main()
 
-    #python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100
-    #python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/chn/en/ 100
-    #python PCcrawler.py promedmail.org/post http://www.promedmail.org
+#python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100
+#python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/chn/en/ 100
+#python PCcrawler.py promedmail.org/post http://www.promedmail.org
