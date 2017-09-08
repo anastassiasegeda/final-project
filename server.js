@@ -184,7 +184,6 @@ app.post('/resultsPage', function(req, res){
 	//Note! The user cannot interact with a country (on the map) from results page if a value is set to null
 	var mapobj = JSON.parse(fs.readFileSync('mapdata/map.json', 'utf8'));
 
-
 	//Find neighbour countries
 	var newdata = [];
 	for (var i in keys) {

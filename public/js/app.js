@@ -835,28 +835,28 @@ var description = (function(){
 		var details = String()+
 							'<div class="container">'+
 								'<div class="row">'+
-									'<div class="col-sm-2 col-md-2"></div>'+
-									'<p class="col-sm-8 col-md-8 spa-description-title">Title: '+outbreak.title+'</p>'+
+									'<div class="col-sm-1 col-md-2"></div>'+
+									'<p class="col-sm-9 col-md-8 spa-description-title">Title: '+outbreak.title+'</p>'+
 								'</div>'+
 
 								'<div class="row">'+
-									'<div class=" col-sm-2 col-md-2"></div>'+
-							  		'<p class=" col-sm-8 col-md-8 spa-description-date">Date: '+outbreak.date[0]+" "+outbreak.date[1]+" "+outbreak.date[2]+'</p>'+
+									'<div class=" col-sm-1 col-md-2"></div>'+
+							  		'<p class=" col-sm-9 col-md-8 spa-description-date">Date: '+outbreak.date[0]+" "+outbreak.date[1]+" "+outbreak.date[2]+'</p>'+
 							  	'</div>'+
 
 							  	'<div class="row">'+
-							  		'<div class="col-sm-2 col-md-2"></div>'+
-							  		'<p class=" col-sm-8 col-md-8 spa-description-summary">Summary: '+outbreak.summary+'</p>'+
+							  		'<div class="col-sm-1 col-md-2"></div>'+
+							  		'<p class=" col-sm-9 col-md-8 spa-description-summary">Summary: '+outbreak.summary+'</p>'+
 							  	'</div>'+
 
 							  	'<div class="row">'+
-							  		'<div class=" col-sm-2 col-md-2"></div>'+
-							  		'<p class=" col-sm-8 col-md-8 spa-description-url">Url: '+outbreak.url+'</p>'+
+							  		'<div class=" col-sm-1 col-md-2"></div>'+
+							  		'<p class=" col-sm-9 col-md-8 spa-description-url">Url: '+outbreak.url+'</p>'+
 							  	'</div>'+
 
 							  	'<div class="row">'+
-							  		'<div class=" col-sm-2 col-md-2"></div>'+
-							  		'<p class=" col-sm-8 col-md-8 spa-description-keywords">Keywords: '+outbreak.keywordsMatched+'</p>'+
+							  		'<div class=" col-sm-1 col-md-2"></div>'+
+							  		'<p class=" col-sm-9 col-md-8 spa-description-keywords">Keywords: '+outbreak.keywordsMatched+'</p>'+
 							  	'</div>'+
 							'</div>';
 		$(id).append(nav);	
@@ -887,11 +887,42 @@ var description = (function(){
 
 		$('#openInfo').click(goToInfo);
 		$('#spa-description').append(footbar);
+
+			//Show more/less button for summary
+			//based on https://codepen.io/maxds/pen/jgeoA
+		    var showChar = 1800;  //how many characters are shown
+		    var ellipsestext = "...";
+		    var moretext = "Show more";
+		    var lesstext = "Show less";
+		    
+		    var content = $('html').find('.spa-description-summary').html();
+		 
+		    if(content.length > showChar) {
+		        var c = content.substr(0, showChar);
+		        var h = content.substr(showChar, content.length - showChar);
+		        var html = c + '<span class="moreellipses">'+ellipsestext+'&nbsp;</span><span class="morecontent"><span>' + h + '</span>&nbsp;&nbsp;<a href="" class="morebutton">' + moretext + '</a></span>';
+		 
+		        $('.spa-description-summary').html(html);
+		    }
+		 
+		    $(".morebutton").click(function(){
+		        if($(this).hasClass("less")) {
+		            $(this).removeClass("less");
+		            $(this).html(lesstext);
+		        } else {
+		            $(this).addClass("less");
+		            $(this).html(moretext);
+		        }
+		        $(this).prev().toggle();
+		        $(this).parent().prev().toggle();
+		        return false;
+		    });
+		    $(".morebutton").click();
+		    $(".morebutton").parent().prev().toggle();
 	};
 	return {initDescription:initDescription};
 }());//end description
-
-
+	
 
 
 //Manage/initialize information page

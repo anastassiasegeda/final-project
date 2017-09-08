@@ -10,6 +10,13 @@ body, #spa-search
 
 p, .row
 	margin: 0
+//read more/less button
+.morebutton
+	color: $accent-colour
+	padding: 5px
+	&:hover
+		background-color: $accent-colour
+		color: white
 
 //tooltip colour
 .tooltip .tooltip-inner
@@ -19,9 +26,17 @@ p, .row
 #addbtn, .fa-pencil, .fa-times, .fa-map-marker, .fa-chevron-up, .fa
 	cursor: pointer
 
+#input-addbtn
+	margin-top: 20px	
+
+#spa-results-back, #spa-description-back
+	margin-top: 50px
+
 .fa-map-marker, .fa-chevron-up
 	font-size: 17px
 
+#spa-info, #spa-search, #spa-results, #spa-description
+		margin-bottom: 	100px
 
 #spa-search, #spa-results, #spa-description 
 	transition: margin-left .5s
@@ -36,14 +51,15 @@ p, .row
 	line-height: 2 !important
 
 .spa-search-input
-	padding-top: 40px
+	padding-top: 60px
 
 .spa-search-addbtn i
-	font-size: 35px
+	font-size: 40px
 
-.spa-search-entry i
-	font-size: 20px
-
+.spa-search-entry
+	padding: 10px
+	i
+		font-size: 20px
 
 .spa-search-addbtn
 	margin-top: 30px
