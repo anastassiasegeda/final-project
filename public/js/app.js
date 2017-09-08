@@ -70,10 +70,12 @@ var showSearch = function($container){
 		});
 };
 
+
+
 //Manage/initialize information page
 var information = (function(){
 	var infoTemplates = {
-		about: String()+
+		about: String() +
 						'<div id="spa-info-about">'+
 							'<div class="container">'+
 								'<div class="row">'+
@@ -118,6 +120,8 @@ var information = (function(){
 	};
 	return {initInfo:initInfo};
 }());
+
+
 
 //Manage page and display a map of recent outbreaks
 //Other functionality in map.js
@@ -275,6 +279,8 @@ var loader = (function(){
 	};
 	return {initLoader:initLoader};
 })();
+
+
 
 //Manage search page (also playing a role of a starting page)
 var search = (function() {
@@ -602,6 +608,10 @@ var search = (function() {
 		return {initSearch:initSearch};
 	}());
 	
+
+
+
+
 //Manage results page	
 var results = (function(){
 	var 
@@ -773,6 +783,9 @@ var results = (function(){
 		return {initResults:initResults};
 	}());
 
+
+
+
 	//Manage descriptions page	
 var description = (function(){
 	//just pass outbreak object
@@ -877,6 +890,9 @@ var description = (function(){
 	};
 	return {initDescription:initDescription};
 }());//end description
+
+
+
 
 //Manage/initialize information page
 var worldmaprecent = (function(){
@@ -1059,59 +1075,59 @@ var worldmaprecent = (function(){
     };
 
 initWorldmap = function(container, abbr){           
-//if abbr is number - then the request was made from recent map page
-if(Number.isInteger(abbr)){
-    var datax = JSON.parse(localStorage.getItem('mapval'));
-    var neighOutbreaks = JSON.parse(localStorage.getItem('mapdata'));
-}
-else{//request was made from results page
-    var datax = JSON.parse(localStorage.getItem('worldData'));
-    var neighOutbreaks = JSON.parse(localStorage.getItem('neighboursObject'));
-}
+	//if abbr is number - then the request was made from recent map page
+	if(Number.isInteger(abbr)){
+	    var datax = JSON.parse(localStorage.getItem('mapval'));
+	    var neighOutbreaks = JSON.parse(localStorage.getItem('mapdata'));
+	}
+	else{//request was made from results page
+	    var datax = JSON.parse(localStorage.getItem('worldData'));
+	    var neighOutbreaks = JSON.parse(localStorage.getItem('neighboursObject'));
+	}
 
-$('#recent-outbreaks-list').html('');
-//populate the list with data
-var cnames = Object.keys(neighOutbreaks);
-//console.log(neighOutbreaks);
-for(var i =0;i<cnames.length;i++){//for each country
-    var currentc = cnames[i];
-    var outbreaks = Object.keys(neighOutbreaks[currentc]);
-    if(outbreaks.length>0){//if any outbreaks found - create list
-    	var currentid = currentc.split(" ").join("_");
+	$('#recent-outbreaks-list').html('');
+	//populate the list with data
+	var cnames = Object.keys(neighOutbreaks);
+	//console.log(neighOutbreaks);
+	for(var i =0;i<cnames.length;i++){//for each country
+	    var currentc = cnames[i];
+	    var outbreaks = Object.keys(neighOutbreaks[currentc]);
+	    if(outbreaks.length>0){//if any outbreaks found - create list
+	    	var currentid = currentc.split(" ").join("_");
 
-        var cheader = String()+  '<div class="spa-outbreaks-dropdown" id="recent-outbreaks-'+currentid+'">'+
-                                                            '<div class="spa-outbreaks-countrydetails row" id="recent-entry'+i+'">'+
-                                                                '<div class="col-sm-2 col-md-2"></div>'+
-                                                                '<p class="spa-outbreaks-countryname col-xs-3 col-sm-3 col-md-3">'+currentc+'</p>'+
-                                                                '<p class="spa-outbreaks-found col-xs-7 col-sm-5 col-md-5">'+outbreaks.length+' outbreaks found</p>'+
+	        var cheader = String()+  '<div class="spa-outbreaks-dropdown" id="recent-outbreaks-'+currentid+'">'+
+	                                                            '<div class="spa-outbreaks-countrydetails row" id="recent-entry'+i+'">'+
+	                                                                '<div class="col-sm-2 col-md-2"></div>'+
+	                                                                '<p class="spa-outbreaks-countryname col-xs-3 col-sm-3 col-md-3">'+currentc+'</p>'+
+	                                                                '<p class="spa-outbreaks-found col-xs-7 col-sm-5 col-md-5">'+outbreaks.length+' outbreaks found</p>'+
 
-                                                                '<div class="spa-results-dropbtn col-xs-1 col-sm-1 col-md-1" aria-hidden="true">'+
-                                                                    '<span><i class="fa fa-chevron-up spa-results-dropbtn" id="outbreaklist-drop'+i+'"></i></span>'+
-                                                                '</div>'+
-                                                            '</div>'+
-                                                '</div>';
-        $('#recent-outbreaks-list').append(cheader);
+	                                                                '<div class="spa-results-dropbtn col-xs-1 col-sm-1 col-md-1" aria-hidden="true">'+
+	                                                                    '<span><i class="fa fa-chevron-up spa-results-dropbtn" id="outbreaklist-drop'+i+'"></i></span>'+
+	                                                                '</div>'+
+	                                                            '</div>'+
+	                                                '</div>';
+	        $('#recent-outbreaks-list').append(cheader);
 
-        var targetid = String()+'#recent-outbreaks-'+currentid;
-        for(var j = 0;j<outbreaks.length;j++){//for each outbreak found in this country
-            var currento = neighOutbreaks[currentc][outbreaks[j]];
-            var outbreakDetails = String()+
-                                    '<div class="row spa-outbreaks-outbreak" id="recent-outbreaks-'+i+'-'+j+'">'+
-                                        '<p class="map-outbreak-date col-xs-3 col-sm-3 col-md-2 col-lg-2">Date: '+currento.date[0]+" "+currento.date[1]+" "+currento.date[2]+'</p>'+
-                                        '<p class="map-outbreak-name col-xs-9 col-sm-9 col-md-7 col-lg-7">'+currento.title+'</p>'+
-                                    '</div>';
-            $(targetid).append(outbreakDetails);
-            var descrBtnID = '#recent-outbreaks-'+i+'-'+j;
-            $(descrBtnID).click(goToDescription);
-        }
+	        var targetid = String()+'#recent-outbreaks-'+currentid;
+	        for(var j = 0;j<outbreaks.length;j++){//for each outbreak found in this country
+	            var currento = neighOutbreaks[currentc][outbreaks[j]];
+	            var outbreakDetails = String()+
+	                                    '<div class="row spa-outbreaks-outbreak" id="recent-outbreaks-'+i+'-'+j+'">'+
+	                                        '<p class="map-outbreak-date col-xs-3 col-sm-3 col-md-2 col-lg-2">Date: '+currento.date[0]+" "+currento.date[1]+" "+currento.date[2]+'</p>'+
+	                                        '<p class="map-outbreak-name col-xs-9 col-sm-9 col-md-7 col-lg-7">'+currento.title+'</p>'+
+	                                    '</div>';
+	            $(targetid).append(outbreakDetails);
+	            var descrBtnID = '#recent-outbreaks-'+i+'-'+j;
+	            $(descrBtnID).click(goToDescription);
+	        }
 
-        //handle dropdown button
-        var dropdownBtnID = '#outbreaklist-drop'+i
-        $(dropdownBtnID).click(dropdownHandler);
-        //trigger click so it's closed
-        $(dropdownBtnID).trigger('click');
-    }//end if             
-}
+	        //handle dropdown button
+	        var dropdownBtnID = '#outbreaklist-drop'+i
+	        $(dropdownBtnID).click(dropdownHandler);
+	        //trigger click so it's closed
+	        $(dropdownBtnID).trigger('click');
+	    }//end if             
+	}
             //Initialise highmaps to display a worldmap
             var chart = Highcharts.mapChart(container, {
                 chart : {
@@ -1167,7 +1183,7 @@ for(var i =0;i<cnames.length;i++){//for each country
                     mapData: Highcharts.maps['custom/world'],
                     joinBy: ['iso-a2', 'code'],
                         formatter: function () {
-                            if (this.point.value>0) {
+                            if (this.point.value > 0) {
                                     return this.point.name;
                             }
                          },
@@ -1282,6 +1298,7 @@ for(var i =0;i<cnames.length;i++){//for each country
     };
     return{initWorldmap:initWorldmap};
 }());
+
 
 //Initialize search page as a starting page
 $(function() {

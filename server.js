@@ -23,18 +23,18 @@ var server = app.listen(app.get('port'), function() {
 //Scheduler. Resource: https://github.com/kelektiv/node-cron
 var CronJob = require('cron').CronJob;
 var runCrawler = new CronJob({
-  cronTime: '55 30 15 * * 1-7',//'59 59 23 * * 1-7',
+  cronTime: '25 21 11 * * 1-7',//'59 59 23 * * 1-7',
   onTick: function() {
      	var child_process = require('child_process');
 		console.log("Execute python");
 
 		//do the same for every website or specify them in array/json string and for-loop
-		child_process.execSync('python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100',{cwd: './PCcrawler/'}, function (err){
+		/*child_process.execSync('python PCcrawler.py wwwnc.cdc.gov/travel/notices https://wwwnc.cdc.gov/travel/notices 100',{cwd: './PCcrawler/'}, function (err){
    	 		if (err){
    	 			console.log(err);
     			console.log("child processes failed with error code: " + err.code);
    	 		}
-		});
+		});*/
 
 	 	/*child_process.execSync('python PCcrawler.py www.who.int http://www.who.int/csr/don/archive/country/en/ 100',{cwd: './PCcrawler/'}, function (err){
    	 		if (err){
@@ -42,12 +42,12 @@ var runCrawler = new CronJob({
     			console.log("child processes failed with error code: " + err.code);
    	 		}
 		});*/
-		/*child_process.execSync('python PCcrawler.py promedmail.org/post http://www.promedmail.org 200',{cwd: './PCcrawler/'}, function (err){
+		child_process.execSync('python PCcrawler.py promedmail.org/post http://www.promedmail.org 200',{cwd: './PCcrawler/'}, function (err){
    	 		if (err){
    	 			console.log(err);
     			console.log("child processes failed with error code: " + err.code);
    	 		}
-		});*/
+		});
 		var countries = ["Afghanistan","Albania","Algeria", "American Samoa","Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia",
 				"Aruba", "Australia","Austria","Azerbaijan","Bahamas", "Bahrain","Bangladesh", "Barbados", "Belarus","Belgium",
  				"Belize", "Bermuda", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil","Brunei", "Bulgaria", "Burkina Faso","Burundi", "Cambodia", "Cameroon", "Canada",
@@ -318,6 +318,89 @@ var findAltNames = function(country){
 	return alternatives;
 };
 
+//check all dates for this country and find all posible dates by checking the vocabulary
+var findPossibleDates = function(entries){
+	var vocab1 = JSON.parse(fs.readFileSync('PCcrawler/data/vocab1.txt', 'utf8'));
+	
+	var possibledates = [];
+	for(i = 0; i < entries.dates.length; i++){
+		date = entries.dates[i];
+		dayMonthYear = date.split("/");//split the date into day-[0], month[1], year[2]
+		monthVariations = months[dayMonthYear[1]];//three possibilities for month e.g. 01, Jan, January
+
+		//console.log(dayMonthYear);
+		for(m = 0; m < monthVariations.length; m++){
+			var dateFound = [dayMonthYear[0], monthVariations[m], dayMonthYear[2]];
+			if(vocab1.indexOf(dayMonthYear[0]) > -1 && vocab1.indexOf(monthVariations[m]) > -1 && vocab1.indexOf(dayMonthYear[2]) > -1){
+				possibledates.push(dateFound);
+				//console.log("possible outbreak for this date: " + dateFound);
+			}
+		}//end for month variations
+	}//end for dates
+
+	return possibledates;
+};
+
+//find ids of documents that contain this country
+var checkCountryPostings = function(splitcountry){
+	var postings1 = JSON.parse(fs.readFileSync('PCcrawler/data/postings1.txt', 'utf8'));						
+	var vocab1 = JSON.parse(fs.readFileSync('PCcrawler/data/vocab1.txt', 'utf8'));
+	
+	var countryPostings = [];
+
+	var wordsIndex = [];//indeces for each part of the country name
+	for(i in splitcountry){
+		word = splitcountry[i]
+		wordsIndex.push(vocab1.indexOf(word));
+	}
+
+	var wordsPostings = [];//contains ids of documents that contain the words
+	for(w = 0; w < wordsIndex.length; w++){
+		var ids = [];
+		for(var post in postings1[wordsIndex[w]]){
+			ids.push(post);
+		}
+		wordsPostings.push(ids);
+	}
+
+	//if id is present in postings for each word (part of the country name), then this document contains the whole country name
+	var ids = wordsPostings[0];
+	var isFound = 1;
+	for(i in ids){//for each id
+		var currId = ids[i];
+		for(q in wordsPostings){
+			wordOccurences = wordsPostings[q];
+
+			if(wordOccurences.indexOf(currId) >-1){
+				isFound = 1;//found
+			}
+			else{
+				isFound = 0;//not found
+				break;
+			}
+		}
+		if(isFound === 1)
+			countryPostings.push(currId);
+	}
+	//console.log("Country posts:   " + countryPostings);
+	return countryPostings;
+};
+
+//extra check if country is in dictionary
+var isCountryInDictionary = function(splitcountry){
+	var vocab1 = JSON.parse(fs.readFileSync('PCcrawler/data/vocab1.txt', 'utf8'));
+
+	var isPresent = 1//true - found in the vocab
+	for(word in splitcountry){
+		if (vocab1.indexOf(splitcountry[word]) > -1){
+			isPresent = 1;//found
+		}
+		else {
+			isPresent = 0//not found
+		}
+	}
+	return isPresent;
+};
 
 var findOutbreaks = function(entries, keywords){
 	var docids1 = JSON.parse(fs.readFileSync('PCcrawler/data/docids1.txt', 'utf8'));
@@ -326,179 +409,112 @@ var findOutbreaks = function(entries, keywords){
 	var summary1 = JSON.parse(fs.readFileSync('PCcrawler/data/fsummary1.txt', 'utf8'));
 	var outbreaksFound = {};
 
-for (j = 0; j < entries.length; j++){
-		var c = entries[j].country;
-		outbreaksFound[c] = {};
+	for (j = 0; j < entries.length; j++){
+			var c = entries[j].country;
+			outbreaksFound[c] = {};
 
-		var altCountryNames = findAltNames(c);
+			var altCountryNames = findAltNames(c);
 
-		for(var a = 0; a<altCountryNames.length; a++){
-		//some countries are composite (United Kingdom, United Arab Emirates)
-		//need to split because they are stored as separate words in the vocabulary
-		var csplit = altCountryNames[a].split(' ');
+			for(var a = 0; a<altCountryNames.length; a++){
+				//some countries are composite (United Kingdom, United Arab Emirates)
+				//need to split because they are stored as separate words in the vocabulary
+				var csplit = altCountryNames[a].split(' ');
 
-		var isPresent = 1//true - found in the vocab
-		//extra check if country is in dictionary
-		//could save some time if its not: do not need to check country + date n times
-		for(word in csplit){
-			//console.log(csplit[word]);
-			if (vocab1.indexOf(csplit[word]) > -1){
-				isPresent = 1;//found
-			}
-			else {
-				isPresent = 0//not found
-			}
-			//console.log(isPresent);
-		}
+				//if the country is indeed in the dictionary
+				if(isCountryInDictionary(csplit) === 1){
+					console.log(c);
 
-		//if the country is indeed in the dictionary
-		if(isPresent === 1){
+					//check all dates for this country and find all posible dates by checking the vocabulary
+					var possibleDates = findPossibleDates(entries[j]);
 
-			console.log(c);
+					//if any possible dates for outbreaks were found in the vocab
+					if(possibleDates.length > 0){
 
-			var possibleDates = [];
-			//check all dates for this country and find all posible dates by checking the vocabulary
-			for(i = 0; i < entries[j].dates.length; i++){
-				date = entries[j].dates[i];
-				dayMonthYear = date.split("/");//split the date into day-[0], month[1], year[2]
-				monthVariations = months[dayMonthYear[1]];//three possibilities for month e.g. 01, Jan, January
+							//find ids of documents that contain this country
+							var countryPostings = checkCountryPostings(csplit);
 
-				//console.log(dayMonthYear);
-				for(m = 0; m < monthVariations.length; m++){
-					var dateFound = [dayMonthYear[0], monthVariations[m], dayMonthYear[2]];
-					if(vocab1.indexOf(dayMonthYear[0]) > -1 && vocab1.indexOf(monthVariations[m]) > -1 && vocab1.indexOf(dayMonthYear[2]) > -1){
-						possibleDates.push(dateFound);
-						//console.log("possible outbreak for this date: " + dateFound);
-					}
-				}//end for month variations
-			}//end for dates
+							//for each possible date
+							for(d in possibleDates){
+								datePostings = [];
 
-			//if any possible dates for outbreaks were found in the vocab
-			if(possibleDates.length > 0){
-					//find ids of documents that contain this country
-					var countryPostings = [];
+								var pDate = possibleDates[d];
+								//console.log(pDate);
+								var dmyIndex = [vocab1.indexOf(pDate[0]), vocab1.indexOf(pDate[1]), vocab1.indexOf(pDate[2])];
 
-					var wordsIndex = [];//indeces for each part of the country name
-					for(i in csplit){
-						word = csplit[i]
-						wordsIndex.push(vocab1.indexOf(word));
-					}
-
-					var wordsPostings = [];//contains ids of documents that contain the words
-					for(w = 0; w < wordsIndex.length; w++){
-						var ids = [];
-						for(var post in postings1[wordsIndex[w]]){
-							ids.push(post);
-						}
-						wordsPostings.push(ids);
-					}
-
-					//if id is present in postings for each word (part of the country name), then this document contains the whole country name
-					var ids = wordsPostings[0];
-					var isFound = 1;
-					for(i in ids){//for each id
-						var currId = ids[i];
-						for(q in wordsPostings){
-							wordOccurences = wordsPostings[q];
-
-							if(wordOccurences.indexOf(currId) >-1){
-								isFound = 1;//found
-							}
-							else{
-								isFound = 0;//not found
-								break;
-							}
-						}
-						if(isFound === 1)
-							countryPostings.push(currId);
-					}
-					//console.log("Country posts:   " + countryPostings);
-
-					//for each possible date
-					for(d in possibleDates){
-						datePostings = [];
-
-						var pDate = possibleDates[d];
-						//console.log(pDate);
-						var dmyIndex = [vocab1.indexOf(pDate[0]), vocab1.indexOf(pDate[1]), vocab1.indexOf(pDate[2])];
-
-						//find postings for dayMonthYear for this date
-						var dmyPostings = [[],[],[]];
-						for(w = 0; w < 3; w++){						
-							for(var post in postings1[dmyIndex[w]]){
-								dmyPostings[w].push(post);
-							}
-						}
-						//console.log("Date postings: "+ dmyPostings);
-
-						for(i in dmyPostings[0]){
-							var curDateId = dmyPostings[0][i];
-							if(dmyPostings[1].indexOf(curDateId)>-1 && dmyPostings[1].indexOf(curDateId)>-1){
-								datePostings.push(curDateId);
-							}
-						}
-						//console.log(datePostings);
-
-						for(i in countryPostings){
-							var docid = countryPostings[i];
-							var excludedDocids = ['who.int/en/', 'who.int/csr/disease/ebola/en/', 'wwwnc.cdc.gov/travel/notices',
-												  'who.int/csr/en/'];
-
-							//docids1[docid].match(/who\.int\/csr\/don\/archive\/country\/...\/en/)
-
-							//exclude if contains who and does not have pattern - www.who.int/csr/don 
-							
-							if((excludedDocids.indexOf(docids1[docid]) == -1 ) && (!docids1[docid].match(/who\.int\/csr\/don\/archive\/country\/...\/en/))){
-								if(datePostings.indexOf(docid)>-1){
-									//we want to get only if of the documents if they contain the country name as least 2 times
-									var occurences = 1;//true - number of occurences more that one
-									for(word in csplit){
-										var curWord = csplit[word];
-										if(postings1[vocab1.indexOf(curWord)][docid]>1){
-											occurences = 1;
-										}
-										else {
-											occurences = 0;
-										}
+								//find postings for dayMonthYear for this date
+								var dmyPostings = [[],[],[]];
+								for(w = 0; w < 3; w++){						
+									for(var post in postings1[dmyIndex[w]]){
+										dmyPostings[w].push(post);
 									}
+								}
+								//console.log("Date postings: "+ dmyPostings);
 
-									if(occurences > 0){
-											//check if the date found is indeed a string that exists
-										for(x = 0; x < summary1[docid].dates.length; x++){
-											//console.log(pDate);
-											var currentPost = summary1[docid].dates[x];
+								for(i in dmyPostings[0]){
+									var curDateId = dmyPostings[0][i];
+									if(dmyPostings[1].indexOf(curDateId)>-1 && dmyPostings[1].indexOf(curDateId)>-1){
+										datePostings.push(curDateId);
+									}
+								}
+								//console.log(datePostings);
 
-											var summary2 = summary1[docid].sentences;
+								for(i in countryPostings){
+									var docid = countryPostings[i];
+									var excludedDocids = ['who.int/en/', 'who.int/csr/disease/ebola/en/', 'wwwnc.cdc.gov/travel/notices',
+														  'who.int/csr/en/'];
 
-											if (currentPost.includes(pDate[0]+" "+pDate[1]+" "+pDate[2])){
-												if(!(docid in outbreaksFound[c])){
-													//console.log(pDate);												
-													outbreaksFound[c][docid]=({title : summary1[docid].title, date : pDate, url : docids1[docid], summary : summary2, keywordsMatched:findMatchingKeywords(keywords, docid)});
-												} 
-											}
-											if(currentPost.includes(pDate[1]+" "+pDate[0]+" "+pDate[2])){										
-												if(!(docid in outbreaksFound[c])){
-													//console.log(pDate);
-													outbreaksFound[c][docid]=({title : summary1[docid].title, date : pDate, url : docids1[docid], summary : summary2, keywordsMatched:findMatchingKeywords(keywords, docid)});
+									//docids1[docid].match(/who\.int\/csr\/don\/archive\/country\/...\/en/)
+
+									//exclude if contains who and does not have pattern - www.who.int/csr/don 
+									
+									if((excludedDocids.indexOf(docids1[docid]) == -1 ) && (!docids1[docid].match(/who\.int\/csr\/don\/archive\/country\/...\/en/))){
+										if(datePostings.indexOf(docid)>-1){
+											//we want to get only if of the documents if they contain the country name as least 2 times
+											var occurences = 1;//true - number of occurences more that one
+											for(word in csplit){
+												var curWord = csplit[word];
+												if(postings1[vocab1.indexOf(curWord)][docid]>1){
+													occurences = 1;
+												}
+												else {
+													occurences = 0;
 												}
 											}
-										}//end for
-									}//end if occurence is more that 1
 
-								}//end if not in the date postings
-							}//end if not in excluded documents
+											if(occurences > 0){
+													//check if the date found is indeed a string that exists
+												for(x = 0; x < summary1[docid].dates.length; x++){
+													//console.log(pDate);
+													var currentPost = summary1[docid].dates[x];
 
-						}//end for country postings
+													var summary2 = summary1[docid].sentences;
 
-					}//end for each possible date
-				}//end if any possible date found
-		}//end if country is present in the vocab
+													if (currentPost.includes(pDate[0]+" "+pDate[1]+" "+pDate[2])){
+														if(!(docid in outbreaksFound[c])){
+															//console.log(pDate);												
+															outbreaksFound[c][docid]=({title : summary1[docid].title, date : pDate, url : docids1[docid], summary : summary2, keywordsMatched:findMatchingKeywords(keywords, docid)});
+														} 
+													}
+													if(currentPost.includes(pDate[1]+" "+pDate[0]+" "+pDate[2])){										
+														if(!(docid in outbreaksFound[c])){
+															//console.log(pDate);
+															outbreaksFound[c][docid]=({title : summary1[docid].title, date : pDate, url : docids1[docid], summary : summary2, keywordsMatched:findMatchingKeywords(keywords, docid)});
+														}
+													}
+												}//end for
+											}//end if occurence is more that 1
 
+										}//end if not in the date postings
+									}//end if not in excluded documents
 
-	}//end for alt names
-}//end for each country
+								}//end for country postings
 
-	//console.log(outbreaksFound);
+							}//end for each possible date
+						}//end if any possible date found
+				}//end if country is present in the vocab
+
+		}//end for alt names
+	}//end for each country
 	return outbreaksFound;
 };
 
